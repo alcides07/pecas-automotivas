@@ -8,4 +8,4 @@ class CarModel(models.Model):
     parts = models.ManyToManyField(Part, related_name="parts")
 
     def __str__(self):
-        return f"{self.name} - {self.manufacturer} ({self.manufacturer})"
+        return f"{self.name} - {self.manufacturer} ({self.year})"
