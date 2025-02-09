@@ -1,0 +1,27 @@
+services:
+  api:
+    container_name: pecas-api-dev
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./:/usr/src/app/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - ./.env.dev
+  db:
+    container_name: pecas-db-dev
+    image: postgres:17-alpine
+    volumes:
+      - pecas_postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: pecasdb
+      POSTGRES_USER: userpecas
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+
+volumes:
+  pecas_postgres_data:
