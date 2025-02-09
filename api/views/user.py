@@ -16,3 +16,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserReadSerializer
         return UserWriteSerializer
 
+    def get_permissions(self):
+        if self.action in ["create"]:
+            return []
+        return super().get_permissions()
