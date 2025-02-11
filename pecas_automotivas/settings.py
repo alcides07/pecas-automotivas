@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'api',
     'drf_spectacular',
     'django_filters',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'celery'
 ]
 
 MIDDLEWARE = [
@@ -152,3 +153,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '0.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TIMEZONE = 'UTC'
