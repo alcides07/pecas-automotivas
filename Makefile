@@ -4,7 +4,7 @@ DJANGO := docker exec -it pecas-api-dev python manage.py
 # -------------------------------------------
 # manage.py
 
-make:
+makemigrations:
 	@${DJANGO} makemigrations
 
 migrate:
