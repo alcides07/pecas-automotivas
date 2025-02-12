@@ -29,7 +29,7 @@ class PartViewSet(viewsets.ModelViewSet):
     @extend_schema(
         request=PartUploadFileSerializer,
     )
-    @action(detail=False, methods=['post'], permission_classes=[], url_path="upload")
+    @action(detail=False, methods=['post'], permission_classes=[IsAdministrador], url_path="upload")
     def parts_upload(self, request, pk=None):
         """
         Endpoint para upload de arquivo CSV de Parts.
