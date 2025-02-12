@@ -27,8 +27,18 @@ class PartViewSet(viewsets.ModelViewSet):
         return PartWriteSerializer
 
     @extend_schema(
-        request=PartUploadFileSerializer,
-    )
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'file': {
+                        'type': 'string',
+                        'format': 'binary'
+                        }
+                    }
+                }
+            },
+        )
     @action(detail=False, methods=['post'], permission_classes=[IsAdministrador], url_path="upload")
     def parts_upload(self, request, pk=None):
         """
