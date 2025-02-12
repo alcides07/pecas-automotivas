@@ -42,6 +42,9 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - redis
+      - db
+    env_file:
+      - ./.env.dev
 
 volumes:
   pecas_postgres_data:
