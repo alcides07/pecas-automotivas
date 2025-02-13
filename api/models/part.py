@@ -10,3 +10,6 @@ class Part(models.Model):
 
     def __str__(self):
         return f"{self.part_number} - {self.name}"
+
+    class Meta:
+        ordering = ['name']  

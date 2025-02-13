@@ -9,3 +9,7 @@ class CarModel(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.manufacturer} ({self.year})"
+
+    class Meta:
+        ordering = ['name']  
+    
