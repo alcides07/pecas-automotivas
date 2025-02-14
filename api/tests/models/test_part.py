@@ -1,15 +1,6 @@
 import pytest
-from ...models import CarModel, Part
-from ..factories import CarModelFactory, PartFactory
 from copy import deepcopy
-
-@pytest.fixture
-def car_model():
-    return CarModelFactory()
-
-@pytest.fixture
-def part():
-    return PartFactory()
+from ...models import Part
 
 @pytest.mark.django_db
 def test_create_part(part):
