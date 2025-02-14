@@ -11,7 +11,7 @@ class PartFactory(factory.django.DjangoModelFactory):
         model = Part
 
     part_number = factory.fuzzy.FuzzyText(length=20)
-    name = faker.word()
+    name = factory.fuzzy.FuzzyText(length=10)
     details = faker.text(max_nb_chars=255)
-    price = factory.fuzzy.FuzzyFloat(low=0, high=9999, precision=2)
+    price = factory.fuzzy.FuzzyDecimal(low=0, high=9999.99, precision=2)
     quantity = factory.fuzzy.FuzzyInteger(low=0)
