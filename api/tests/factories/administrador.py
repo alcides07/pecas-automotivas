@@ -11,7 +11,7 @@ class AdministradorFactory(factory.django.DjangoModelFactory):
 
     username = faker.user_name()
     email = faker.email()
-    password = factory.PostGenerationMethodCall('set_password', faker.password())
+    password = factory.PostGenerationMethodCall('set_password', '123')
 
     @factory.post_generation
     def set_superuser(self, create, extracted, **kwargs):
@@ -21,4 +21,3 @@ class AdministradorFactory(factory.django.DjangoModelFactory):
         self.is_superuser = True
         self.is_staff = True  
         self.save()
-
