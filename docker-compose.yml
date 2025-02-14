@@ -2,7 +2,7 @@ services:
   api:
     container_name: pecas-api-dev
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./:/usr/src/app/
     ports:
