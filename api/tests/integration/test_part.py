@@ -1,4 +1,5 @@
 import pytest
+import json
 from django.urls import reverse
 from decimal import Decimal
 from api.models import Part
@@ -6,6 +7,7 @@ from ..helpers import validated_pagination
 from rest_framework.test import APIClient
 from rest_framework import status
 from api.tests.factories import PartFactory
+from django.test import override_settings
 
 @pytest.fixture
 def create_fifty_parts():
@@ -202,3 +204,56 @@ def test_delete_part_forbidden(user, part):
     response = client.delete(url)
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+@pytest.mark.django_db
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@override_settings(CELERY_TASK_STORE_EAGER_RESULT=True)
+@override_settings(CELERY_RESULT_BACKEND='cache+memory://')
+def test_upload_parts(administrador):
+    access_token = administrador['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    old_count_parts = Part.objects.count()
+
+    url_upload = reverse('parts-parts-upload')
+
+    with open("api/tests/helpers/pecas_automotivas.csv", 'rb') as file_csv:
+        response_upload = client.post(url_upload, {'file': file_csv}, format='multipart')
+
+        task_id = response_upload.data["task_id"]
+
+        assert response_upload.status_code == status.HTTP_202_ACCEPTED
+        assert task_id != None
+
+        url_check_task_progress = reverse('tasks-list')
+
+        response_task = client.get(url_check_task_progress, {'task_id': task_id})
+        assert response_task.status_code == status.HTTP_200_OK
+        
+        response_task_result = response_task.json()
+        response_task_result_dict = json.loads(response_task_result['result'].replace("'", '"'))
+
+        total_linhas_processadas = response_task_result_dict["total_linhas_processadas"]
+        total_registros_criados = response_task_result_dict["total_registros_criados"]
+        total_registros_atualizados = response_task_result_dict["total_registros_atualizados"]
+        message = response_task_result_dict["message"]
+        
+        new_count_parts = Part.objects.count()
+
+        assert old_count_parts + total_registros_criados == new_count_parts
+        assert total_linhas_processadas == total_registros_criados + total_registros_atualizados
+        assert message == "CSV importado com sucesso."
+
+@pytest.mark.django_db
+def test_upload_parts_forbidden(user):
+    access_token = user['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    url_upload = reverse('parts-parts-upload')
+
+    with open("api/tests/helpers/pecas_automotivas.csv", 'rb') as file_csv:
+        response_upload = client.post(url_upload, {'file': file_csv}, format='multipart')
+
+        assert response_upload.status_code == status.HTTP_403_FORBIDDEN
