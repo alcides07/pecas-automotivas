@@ -1,10 +1,10 @@
 import pytest
 from django.urls import reverse
-from api.models import CarModel
-from ..helpers import validated_pagination
+from api.models import CarModel, Part
 from rest_framework.test import APIClient
 from rest_framework import status
-from api.tests.factories import CarModelFactory
+from ..factories import CarModelFactory, PartFactoryZeroQuantity
+from ..helpers import validated_pagination
 
 @pytest.fixture
 def create_fifty_car_models():
@@ -216,3 +216,139 @@ def test_delete_car_model_forbidden(user, car_model):
     response = client.delete(url)
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+@pytest.mark.django_db
+def test_associate_car_model_with_part(administrador, car_model, part):
+    access_token = administrador['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    old_count_car_model_parts = car_model.parts.count()
+    old_quantity_part = part.quantity
+
+    data_submit = {
+        "operation": "associate",
+        "parts": [part.id]
+    }
+
+    url = reverse('car models-parts', kwargs={'pk': car_model.id})
+    response = client.patch(url, data_submit)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    part_updated = Part.objects.filter(id=part.id).first()
+
+    new_count_car_model_parts = car_model.parts.count()
+    new_quantity_part = part_updated.quantity
+
+    assert new_count_car_model_parts == old_count_car_model_parts + 1 
+    assert new_quantity_part == old_quantity_part - 1 
+
+@pytest.mark.django_db
+def test_associate_car_model_with_part_out_stock(administrador, car_model):
+    access_token = administrador['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    count_car_model_parts = car_model.parts.count()
+    part = PartFactoryZeroQuantity()
+    quantity_part = part.quantity
+
+    data_submit = {
+        "operation": "associate",
+        "parts": [part.id]
+    }
+
+    url = reverse('car models-parts', kwargs={'pk': car_model.id})
+
+    response = client.patch(url, data_submit)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    part_unchanged = Part.objects.filter(id=part.id).first()
+    car_model_unchanged = CarModel.objects.filter(id=car_model.id).first()
+    count_car_model_parts_unchanged = car_model_unchanged.parts.count()
+
+    assert quantity_part == part_unchanged.quantity
+    assert count_car_model_parts == count_car_model_parts_unchanged
+
+@pytest.mark.django_db
+def test_associate_car_model_with_part_already_associated(administrador, car_model):
+    access_token = administrador['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    count_car_model_parts = car_model.parts.count()
+    part = car_model.parts.first()
+    quantity_part = part.quantity
+
+    data_submit = {
+        "operation": "associate",
+        "parts": [part.id]
+    }
+
+    url = reverse('car models-parts', kwargs={'pk': car_model.id})
+
+    response = client.patch(url, data_submit)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    part_unchanged = Part.objects.filter(id=part.id).first()
+    car_model_unchanged = CarModel.objects.filter(id=car_model.id).first()
+    count_car_model_parts_unchanged = car_model_unchanged.parts.count()
+
+    assert quantity_part == part_unchanged.quantity
+    assert count_car_model_parts == count_car_model_parts_unchanged
+
+@pytest.mark.django_db
+def test_disassociate_car_model_with_part(administrador, car_model):
+    access_token = administrador['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    old_count_car_model_parts = car_model.parts.count()
+    part_of_car_model = car_model.parts.first()
+    old_quantity_part = part_of_car_model.quantity
+
+    data_submit = {
+        "operation": "disassociate",
+        "parts": [part_of_car_model.id]
+    }
+
+    url = reverse('car models-parts', kwargs={'pk': car_model.id})
+    response = client.patch(url, data_submit)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    part_updated = Part.objects.filter(id=part_of_car_model.id).first()
+
+    new_count_car_model_parts = car_model.parts.count()
+    new_quantity_part = part_updated.quantity
+
+    assert new_count_car_model_parts == old_count_car_model_parts - 1
+    assert new_quantity_part == old_quantity_part + 1 
+
+@pytest.mark.django_db
+def test_disassociate_car_model_with_part_not_associated(administrador, car_model):
+    access_token = administrador['access']
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+    count_car_model_parts = car_model.parts.count()
+    part = PartFactoryZeroQuantity()
+    quantity_part = part.quantity
+
+    data_submit = {
+        "operation": "disassociate",
+        "parts": [part.id]
+    }
+
+    url = reverse('car models-parts', kwargs={'pk': car_model.id})
+    response = client.patch(url, data_submit)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    part_unchanged = Part.objects.filter(id=part.id).first()
+    car_model_unchanged = CarModel.objects.filter(id=car_model.id).first()
+    count_car_model_parts_unchanged = car_model_unchanged.parts.count()
+
+    assert quantity_part == part_unchanged.quantity
+    assert count_car_model_parts == count_car_model_parts_unchanged
