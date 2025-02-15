@@ -76,6 +76,29 @@ docker-compose up --build
 ```
 http://localhost:8000/api/docs/
 ```
+
+#### Crie um usuário comum ou administrador
+
+> Se deseja criar um usuário administrador, acesse:
+ 
+POST
+```
+http://localhost:8000/api/administradores/
+```
+
+> Se deseja criar um usuário comum, acesse:
+
+POST
+```
+http://localhost:8000/api/users/
+```
+
+> Realize o login em:
+
+```
+http://localhost:8000/api/token/
+```
+
 </details>
 
 <details>
@@ -105,6 +128,28 @@ make full
 
 ```
 http://localhost:8000/api/docs/
+```
+
+#### Crie um usuário comum ou administrador
+
+> Se deseja criar um usuário administrador, acesse:
+ 
+POST
+```
+http://localhost:8000/api/administradores/
+```
+
+> Se deseja criar um usuário comum, acesse:
+
+POST
+```
+http://localhost:8000/api/users/
+```
+
+> Realize o login em:
+
+```
+http://localhost:8000/api/token/
 ```
 </details>
 
