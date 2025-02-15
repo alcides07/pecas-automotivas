@@ -1,5 +1,9 @@
 import pytest
+import jwt
+import time
+from datetime import datetime, timedelta
 from django.urls import reverse
+from pecas_automotivas import settings
 from django.contrib.auth.models import User
 from ..factories import UserFactory
 from ..helpers import validated_pagination
@@ -65,3 +69,27 @@ def test_create_user():
     assert response.data["username"] == new_user["username"]
     assert response.data["email"] == new_user["email"]
     assert new_count_users == old_count_users + 1
+
+@pytest.mark.django_db
+def test_validate_jwt(user):
+    access_token = user['access']
+
+    try:
+        _ = jwt.decode(access_token, settings.SECRET_KEY, algorithms="HS256")
+    except jwt.ExpiredSignatureError:
+        pytest.fail("Token JWT expirou")
+    except jwt.InvalidTokenError:
+        pytest.fail("Token JWT é inválido")
+
+@pytest.mark.django_db
+def test_expired_jwt():
+    payload = {
+        'user_id': 1,
+        'exp': datetime.now() + timedelta(seconds=1)
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    
+    time.sleep(2)
+
+    with pytest.raises(jwt.ExpiredSignatureError):
+        jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
